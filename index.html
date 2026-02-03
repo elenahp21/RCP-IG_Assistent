@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+  <link rel="manifest" href="manifest.json" />
+<meta name="theme-color" content="#2e7d32" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RCP IG_Assist</title>
+  <style>
+    @import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css');
+
+    :root {
+      --bg: #f5f6fa;
+      --text: #222;
+      --white: #fff;
+      --red: #e53935;
+      --blue: #1e88e5;
+      --green: #43a047;
+      --yellow: #fbc02d;
+      --purple: #8e24aa;
+      --cyan: #00acc1;
+      --light: #eeeeee;
+      --radius: 1rem;
+    }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 2rem 1rem 5rem;
+      background-color: var(--bg);
+      color: var(--text);
+      text-align: center;
+      position: relative;
+    }
+
+    h1 {
+      font-size: 2.2rem;
+      font-weight: bold;
+      margin-bottom: 0.2rem;
+    }
+
+    #timer {
+      font-size: 3rem;
+      font-weight: bold;
+      margin: 1rem auto;
+      background: var(--green);
+      color: white;
+      padding: 1rem 2rem;
+      border-radius: var(--radius);
+      width: max-content;
+    }
+
+    .buttons {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 1rem;
+      margin: 2rem auto;
+    }
+
+    .btn {
+      border: none;
+      border-radius: var(--radius);
+      padding: 0.8rem 1rem;
+      font-size: 1rem;
+      min-width: 140px;
+      color: white;
+      cursor: pointer;
+      display: flex;
+      gap: 0.5rem;
+      justify-content: center;
+      align-items: center;
+      transition: transform 0.1s ease;
+    }
+
+    .btn i {
+      font-size: 1.2rem;
+    }
+
+    .btn:active {
+      transform: scale(0.96);
+    }
+
+    .btn.red { background-color: var(--red); }
+    .btn.blue { background-color: var(--blue); }
+    .btn.green { background-color: var(--green); }
+    .btn.yellow { background-color: var(--yellow); color: black; }
+    .btn.purple { background-color: var(--purple); }
+    .btn.cyan { background-color: var(--cyan); }
+
+    .counts {
+      margin-top: 1rem;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 1rem;
+    }
+
+    .count-box {
+      background-color: var(--light);
+      padding: 1rem;
+      border-radius: var(--radius);
+      min-width: 200px;
+      font-weight: bold;
+    }
+
+    #summary {
+      margin-top: 2rem;
+      text-align: left;
+      max-width: 500px;
+      margin-inline: auto;
+    }
+
+    pre {
+      background: #f0f0f0;
+      padding: 1rem;
+      border-radius: var(--radius);
+      overflow-x: auto;
+    }
+
+    footer {
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+      background: #ddd;
+      padding: 0.5rem;
+      font-size: 0.9rem;
+      color: #444;
+      text-align: center;
+    }
+
+    footer img {
+      height: 24px;
+      vertical-align: middle;
+      margin-right: 8px;
+    }
+  </style>
+</head>
+<script>
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("./sw.js");
+  }
+</script>
+
+<body>
+  <h1>RCP IG_Assist</h1>
+  <div id="timer" role="timer" aria-live="polite">00:00</div>
+
+  <div class="buttons">
+    <button class="btn red" onclick="toggleTimer()" title="Inici / Pausa RCP">
+      <i class="fas fa-play"></i> Inici / Pausa
+    </button>
+    <button class="btn blue" onclick="resetTimer()" title="Reinicia cronòmetre">
+      <i class="fas fa-rotate-left"></i> Reinicia
+    </button>
+    <button class="btn green" onclick="logEvent('Adrenalina')" title="Adrenalina">
+      <i class="fas fa-syringe"></i> Adrenalina
+    </button>
+    <button class="btn purple" onclick="logEvent('Actocortina')" title="Actocortina">
+      <i class="fas fa-prescription-bottle-medical"></i> Actocortina
+    </button>
+    <button class="btn cyan" onclick="logEvent('Amiodarona')" title="Amiodarona">
+      <i class="fas fa-capsules"></i> Amiodarona
+    </button>
+    <button class="btn yellow" onclick="logEvent('Desfibrilació')" title="Desfibrilació">
+      <i class="fas fa-bolt"></i> Desfibrilació
+    </button>
+    <button class="btn blue" onclick="toggleSounds()" id="soundToggle">
+      <i class="fas fa-volume-up"></i> Sons ON/OFF
+    </button>
+    <button class="btn green" onclick="endRCP()">
+      <i class="fas fa-flag-checkered"></i> Fi RCP
+    </button>
+  </div>
+
+  <div class="counts">
+    <div class="count-box">Adrenalines: <span id="count-adrenalina">0</span></div>
+    <div class="count-box">Actocortines: <span id="count-actocortina">0</span></div>
+    <div class="count-box">Amiodarones: <span id="count-amiodarona">0</span></div>
+    <div class="count-box">Desfibrilacions: <span id="count-desfibrilació">0</span></div>
+  </div>
+
+  <div id="summary"></div>
+
+  <audio id="bip" src="https://freesound.org/data/previews/316/316847_4939433-lq.mp3"></audio>
+
+  <footer>
+    <img src="./assets/logoGuttmann.png" alt="Institut Guttmann" style="height:40px; vertical-align: middle; margin-right: 10px;">
+  Creat per <strong>ehernandez</strong> – Institut Guttmann
+</footer>
+
+  <script>
+    let startTime = null;
+    let elapsed = 0;
+    let timerInterval = null;
+    let events = [];
+    let adrenalineReminder = null;
+    let soundsEnabled = true;
+
+    function getCurrentElapsed() {
+      return elapsed + (startTime ? (Date.now() - startTime) : 0);
+    }
+
+    function formatTime(ms) {
+      const m = Math.floor(ms / 60000);
+      const s = Math.floor((ms % 60000) / 1000);
+      return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+    }
+
+    function updateTimer() {
+      document.getElementById('timer').textContent = formatTime(getCurrentElapsed());
+    }
+
+    function toggleTimer() {
+      if (timerInterval) {
+        clearInterval(timerInterval);
+        clearInterval(adrenalineReminder);
+        elapsed += Date.now() - startTime;
+        startTime = null;
+        timerInterval = null;
+      } else {
+        startTime = Date.now();
+        timerInterval = setInterval(updateTimer, 1000);
+        scheduleAdrenalineReminder();
+      }
+    }
+
+    function resetTimer() {
+      clearInterval(timerInterval);
+      clearInterval(adrenalineReminder);
+      elapsed = 0;
+      startTime = null;
+      events = [];
+      updateTimer();
+      updateCounts();
+    }
+
+    function scheduleAdrenalineReminder() {
+      clearInterval(adrenalineReminder);
+      adrenalineReminder = setInterval(() => {
+        if (soundsEnabled) document.getElementById('bip').play();
+      }, 120000);
+    }
+
+    function logEvent(type) {
+      const timestamp = getCurrentElapsed();
+      events.push({ type, time: timestamp });
+      updateCounts();
+      if ((type === 'Desfibrilació' || type === 'Adrenalina') && soundsEnabled) {
+        document.getElementById('bip').play();
+      }
+    }
+
+    function updateCounts() {
+      const counter = type => events.filter(e => e.type === type).length;
+      document.getElementById('count-adrenalina').textContent = counter('Adrenalina');
+      document.getElementById('count-actocortina').textContent = counter('Actocortina');
+      document.getElementById('count-amiodarona').textContent = counter('Amiodarona');
+      document.getElementById('count-desfibrilació').textContent = counter('Desfibrilació');
+    }
+
+    function toggleSounds() {
+      soundsEnabled = !soundsEnabled;
+      document.getElementById('soundToggle').innerHTML = soundsEnabled ? '<i class="fas fa-volume-up"></i> Sons ON' : '<i class="fas fa-volume-mute"></i> Sons OFF';
+    }
+
+    function endRCP() {
+      clearInterval(timerInterval);
+      clearInterval(adrenalineReminder);
+      const totalTime = formatTime(getCurrentElapsed());
+      let output = `Resum de la RCP\nTemps total: ${totalTime}\n`;
+      const types = ['Adrenalina', 'Actocortina', 'Amiodarona', 'Desfibrilació'];
+      types.forEach(type => {
+        const items = events.filter(e => e.type === type).map(e => `- ${formatTime(e.time)} ${type}`);
+        output += `\n${type}s administrades:\n${items.join('\n')}`;
+      });
+      document.getElementById('summary').innerHTML = `<pre>${output}</pre><button class='btn blue' onclick="navigator.clipboard.writeText(\`${output}\`)"><i class='fas fa-copy'></i> Copia</button> <button class='btn green' onclick="downloadTxt(\`${output}\`)"><i class='fas fa-download'></i> Descarrega .txt</button>`;
+    }
+
+    function downloadTxt(text) {
+      const blob = new Blob([text], { type: 'text/plain' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'resum_rcp.txt';
+      a.click();
+    }
+  </script>
+</body>
+</html>
