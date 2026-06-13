@@ -227,107 +227,123 @@
   Creat per <strong>ehernandez</strong> – Institut Guttmann
 </footer>
 
-  <script>
-    let startTime = null;
-    let elapsed = 0;
-    let timerInterval = null;
-    let events = [];
-    let adrenalineReminder = null;
-    let soundsEnabled = true;
+<script>
+  let startTime = null;
+  let elapsed = 0;
+  let timerInterval = null;
+  let events = [];
+  let adrenalineReminder = null;
+  let soundsEnabled = true;
 
-    function getCurrentElapsed() {
-      return elapsed + (startTime ? (Date.now() - startTime) : 0);
-    }
+  function getCurrentElapsed() {
+    return elapsed + (startTime ? (Date.now() - startTime) : 0);
+  }
 
-    function formatTime(ms) {
-      const m = Math.floor(ms / 60000);
-      const s = Math.floor((ms % 60000) / 1000);
-      return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
-    }
+  function formatTime(ms) {
+    const m = Math.floor(ms / 60000);
+    const s = Math.floor((ms % 60000) / 1000);
+    return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+  }
 
-    function updateTimer() {
-      document.getElementById('timer').textContent = formatTime(getCurrentElapsed());
-    }
+  function updateTimer() {
+    document.getElementById('timer').textContent = formatTime(getCurrentElapsed());
+  }
 
-    function toggleTimer() {
-      if (timerInterval) {
-        clearInterval(timerInterval);
-        clearInterval(adrenalineReminder);
-        elapsed += Date.now() - startTime;
-        startTime = null;
-        timerInterval = null;
-      } else {
-        startTime = Date.now();
-        timerInterval = setInterval(updateTimer, 1000);
-        scheduleAdrenalineReminder();
-      }
-    }
-
-    function resetTimer() {
+  function toggleTimer() {
+    if (timerInterval) {
       clearInterval(timerInterval);
       clearInterval(adrenalineReminder);
-      elapsed = 0;
+      elapsed += Date.now() - startTime;
       startTime = null;
-      events = [];
-      updateTimer();
-      updateCounts();
+      timerInterval = null;
+    } else {
+      startTime = Date.now();
+      timerInterval = setInterval(updateTimer, 1000);
+      scheduleAdrenalineReminder();
     }
+  }
 
-    function scheduleAdrenalineReminder() {
-      clearInterval(adrenalineReminder);
-      adrenalineReminder = setInterval(() => {
-        if (soundsEnabled) document.getElementById('bip').play();
-      }, 120000);
+  function resetTimer() {
+    clearInterval(timerInterval);
+    clearInterval(adrenalineReminder);
+    elapsed = 0;
+    startTime = null;
+    events = [];
+    timerInterval = null;
+    updateTimer();
+    updateCounts();
+    document.getElementById('summary').innerHTML = '';
+  }
+
+  function scheduleAdrenalineReminder() {
+    clearInterval(adrenalineReminder);
+    adrenalineReminder = setInterval(() => {
+      if (soundsEnabled) document.getElementById('bip').play();
+    }, 120000);
+  }
+
+  function logEvent(type) {
+    const timestamp = getCurrentElapsed();
+    events.push({ type, time: timestamp });
+    updateCounts();
+
+    if ((type === 'Desfibrilació' || type === 'Adrenalina') && soundsEnabled) {
+      document.getElementById('bip').play();
     }
+  }
 
-    function logEvent(type) {
-      const timestamp = getCurrentElapsed();
-      events.push({ type, time: timestamp });
-      updateCounts();
-      if ((type === 'Desfibrilació' || type === 'Adrenalina') && soundsEnabled) {
-        document.getElementById('bip').play();
-      }
-    }
+  function updateCounts() {
+    const counter = type => events.filter(e => e.type === type).length;
+    document.getElementById('count-adrenalina').textContent = counter('Adrenalina');
+    document.getElementById('count-actocortina').textContent = counter('Actocortina');
+    document.getElementById('count-amiodarona').textContent = counter('Amiodarona');
+    document.getElementById('count-desfibrilació').textContent = counter('Desfibrilació');
+  }
 
-    function updateCounts() {
-      const counter = type => events.filter(e => e.type === type).length;
-      document.getElementById('count-adrenalina').textContent = counter('Adrenalina');
-      document.getElementById('count-actocortina').textContent = counter('Actocortina');
-      document.getElementById('count-amiodarona').textContent = counter('Amiodarona');
-      document.getElementById('count-desfibrilació').textContent = counter('Desfibrilació');
-    }
+  function toggleSounds() {
+    soundsEnabled = !soundsEnabled;
+    document.getElementById('soundToggle').innerHTML = soundsEnabled
+      ? '<i class="fas fa-volume-up"></i> Sons ON'
+      : '<i class="fas fa-volume-mute"></i> Sons OFF';
+  }
 
-    function toggleSounds() {
-      soundsEnabled = !soundsEnabled;
-      document.getElementById('soundToggle').innerHTML = soundsEnabled ? '<i class="fas fa-volume-up"></i> Sons ON' : '<i class="fas fa-volume-mute"></i> Sons OFF';
-    }
+  function endRCP() {
+    clearInterval(timerInterval);
+    clearInterval(adrenalineReminder);
+    timerInterval = null;
 
-    function endRCP() {
-      clearInterval(timerInterval);
-      clearInterval(adrenalineReminder);
-      const totalTime = formatTime(getCurrentElapsed());
-      let output = `Resum de la RCP\nTemps total: ${totalTime}\n`;
-      const types = ['Adrenalina', 'Actocortina', 'Amiodarona', 'Desfibrilació'];
-      types.forEach(type => {
-        const items = events.filter(e => e.type === type).map(e => `- ${formatTime(e.time)} ${type}`);
-        output += `\n${type}s administrades:\n${items.join('\n')}`;
-      });
-     
-      document.getElementById('summary').innerHTML = `<pre>${output}</pre><button class='btn blue' onclick="navigator.clipboard.writeText(\`${output}\`)"><i class='fas fa-copy'></i> Copia</button> <button class='btn green' onclick="downloadTxt(\`${output}\`)"><i class='fas fa-download'></i> Descarrega .txt</button>`;
+    const totalTime = formatTime(getCurrentElapsed());
+    let output = `Resum de la RCP\nTemps total: ${totalTime}\n`;
 
-    <a href="assets/algoritmo.pdf" target="_blank" class="btn orange pdf-button">
-      <i class="fas fa-file-pdf"></i> Obrir Algoritme
-    </a>
-  </div>
-`;
+    const types = ['Adrenalina', 'Actocortina', 'Amiodarona', 'Desfibrilació'];
 
-    function downloadTxt(text) {
-      const blob = new Blob([text], { type: 'text/plain' });
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = 'resum_rcp.txt';
-      a.click();
-    }
-  </script>
+    types.forEach(type => {
+      const items = events
+        .filter(e => e.type === type)
+        .map(e => `- ${formatTime(e.time)} ${type}`);
+
+      output += `\n${type}s administrades:\n${items.join('\n')}`;
+    });
+
+    const escapedOutput = output.replace(/`/g, "\\`");
+
+    document.getElementById('summary').innerHTML =
+      `<pre>${output}</pre>
+      <button class='btn blue' onclick="navigator.clipboard.writeText(\`${escapedOutput}\`)">
+        <i class='fas fa-copy'></i> Copia
+      </button>
+      <button class='btn green' onclick="downloadTxt(\`${escapedOutput}\`)">
+        <i class='fas fa-download'></i> Descarrega .txt
+      </button>`;
+  }
+
+  function downloadTxt(text) {
+    const blob = new Blob([text], { type: 'text/plain' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'resum_rcp.txt';
+    a.click();
+  }
+</script>
 </body>
 </html>
