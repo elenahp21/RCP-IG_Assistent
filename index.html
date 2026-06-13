@@ -87,8 +87,19 @@
     .btn.yellow { background-color: var(--yellow); color: black; }
     .btn.purple { background-color: var(--purple); }
     .btn.cyan { background-color: var(--cyan); }
-    .btn.orange {
+.btn.orange {
   background-color: #f97316;
+}
+
+.zona-algoritmo {
+  max-width: 500px;
+  margin: 0.5rem auto 0;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.boton-algoritmo {
+  text-decoration: none;
 }
 
 .summary-actions {
@@ -202,6 +213,12 @@
   </div>
 
   <div id="summary"></div>
+  
+  <div class="zona-algoritmo">
+  <a href="assets/algoritmo.pdf" target="_blank" class="btn orange boton-algoritmo">
+    <i class="fas fa-file-pdf"></i> Obrir Algoritme
+  </a>
+</div>
 
   <audio id="bip" src="https://freesound.org/data/previews/316/316847_4939433-lq.mp3"></audio>
 
@@ -295,17 +312,8 @@
         const items = events.filter(e => e.type === type).map(e => `- ${formatTime(e.time)} ${type}`);
         output += `\n${type}s administrades:\n${items.join('\n')}`;
       });
-     document.getElementById('summary').innerHTML = `
-  <pre>${output}</pre>
-  <div class="summary-actions">
-    <div class="summary-left-buttons">
-      <button class='btn blue' onclick="navigator.clipboard.writeText(\`${output}\`)">
-        <i class='fas fa-copy'></i> Copia
-      </button>
-      <button class='btn green' onclick="downloadTxt(\`${output}\`)">
-        <i class='fas fa-download'></i> Descarrega .txt
-      </button>
-    </div>
+     
+      document.getElementById('summary').innerHTML = `<pre>${output}</pre><button class='btn blue' onclick="navigator.clipboard.writeText(\`${output}\`)"><i class='fas fa-copy'></i> Copia</button> <button class='btn green' onclick="downloadTxt(\`${output}\`)"><i class='fas fa-download'></i> Descarrega .txt</button>`;
 
     <a href="assets/algoritmo.pdf" target="_blank" class="btn orange pdf-button">
       <i class="fas fa-file-pdf"></i> Obrir Algoritme
