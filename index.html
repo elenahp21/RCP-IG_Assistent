@@ -87,6 +87,27 @@
     .btn.yellow { background-color: var(--yellow); color: black; }
     .btn.purple { background-color: var(--purple); }
     .btn.cyan { background-color: var(--cyan); }
+    .btn.orange {
+  background-color: #f97316;
+}
+
+.summary-actions {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6rem;
+  margin-top: 0.8rem;
+}
+
+.summary-left-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.pdf-button {
+  text-decoration: none;
+}
 
     .counts {
       margin-top: 1rem;
@@ -274,8 +295,23 @@
         const items = events.filter(e => e.type === type).map(e => `- ${formatTime(e.time)} ${type}`);
         output += `\n${type}s administrades:\n${items.join('\n')}`;
       });
-      document.getElementById('summary').innerHTML = `<pre>${output}</pre><button class='btn blue' onclick="navigator.clipboard.writeText(\`${output}\`)"><i class='fas fa-copy'></i> Copia</button> <button class='btn green' onclick="downloadTxt(\`${output}\`)"><i class='fas fa-download'></i> Descarrega .txt</button>`;
-    }
+     document.getElementById('summary').innerHTML = `
+  <pre>${output}</pre>
+  <div class="summary-actions">
+    <div class="summary-left-buttons">
+      <button class='btn blue' onclick="navigator.clipboard.writeText(\`${output}\`)">
+        <i class='fas fa-copy'></i> Copia
+      </button>
+      <button class='btn green' onclick="downloadTxt(\`${output}\`)">
+        <i class='fas fa-download'></i> Descarrega .txt
+      </button>
+    </div>
+
+    <a href="assets/algoritmo.pdf" target="_blank" class="btn orange pdf-button">
+      <i class="fas fa-file-pdf"></i> Obrir Algoritme
+    </a>
+  </div>
+`;
 
     function downloadTxt(text) {
       const blob = new Blob([text], { type: 'text/plain' });
